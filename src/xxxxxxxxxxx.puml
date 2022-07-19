@@ -1,0 +1,109 @@
+@startuml
+title  **交易快照存储流程**
+skinparam lifelineStrategy nosolid
+
+actor APP #EEEBDC
+box "核心引擎Restful"
+participant 列表页
+participant 详情页
+participant 填写页
+queue Redis
+participant 创单
+database Mongo
+end box
+
+
+APP ->列表页
+activate 列表页
+列表页->列表页:列表页接口
+activate 列表页 #ff4d4d
+deactivate 列表页
+
+列表页 ->详情页
+deactivate 列表页
+activate 详情页
+
+详情页->详情页:详情页列表接口
+activate 详情页 #ff4d4d
+deactivate 详情页
+详情页->详情页:详情页详情接口
+activate 详情页 #ff4d4d
+详情页->详情页: 详情页报文存储
+activate 详情页 #DarkSalmon
+详情页-[#DodgerBlue]>Redis:set key
+activate Redis
+return
+deactivate 详情页
+deactivate 详情页
+
+
+详情页 -> 填写页:点击"订"
+deactivate 详情页
+
+
+activate 填写页
+填写页->填写页:填写页产品详情接口
+activate 填写页 #ff4d4d
+填写页->填写页: 填写页产品详情报文存储
+activate 填写页 #DarkSalmon
+填写页-[#DodgerBlue]>Redis:set key
+activate Redis
+return
+deactivate 填写页
+deactivate 填写页
+... ...
+
+填写页->填写页:价格接口
+填写页->填写页:选中押金二次调用价格接口
+activate 填写页 #ff4d4d
+填写页->填写页: 价格报文存储
+activate 填写页 #DarkSalmon
+填写页-[#DodgerBlue]>Redis:set key
+activate Redis
+return
+deactivate 填写页
+deactivate 填写页
+... ...
+
+填写页->填写页:门店指引接口
+
+activate 填写页 #ff4d4d
+填写页->填写页: 门店指引报文存储
+activate 填写页 #DarkSalmon
+填写页-[#DodgerBlue]>Redis:set key
+activate Redis
+return
+deactivate 填写页
+deactivate 填写页
+
+填写页->创单:点击"去支付"
+deactivate 填写页
+activate 创单
+
+创单->创单: 创建订单接口
+activate 创单 #ff4d4d
+创单-[#DodgerBlue]>Redis:get key
+activate Redis
+return
+创单->Mongo
+activate Mongo
+Mongo->Mongo: 报文持久化
+return
+deactivate 创单
+deactivate Mongo
+
+... ...
+创单->创单: 上传图片接口
+activate 创单 #ff4d4d
+创单->图片服务器:上传图片
+activate 图片服务器
+return
+deactivate 图片服务器
+
+创单->Mongo
+activate Mongo
+Mongo->Mongo: 图片链接持久化
+return
+
+footer design by ruoan777@gmail.com
+@enduml
